@@ -1,0 +1,43 @@
+/*
+  Curated Travel Map — design tokens
+  Ported from curated-travel-map-spec.md / Claude Design handoff (turn 6, cobalt palette).
+  Colour has one job in this design: cobalt means structure and confirmation,
+  saffron means a human needs to act. Nothing else earns a colour.
+*/
+:root {
+  /* Colour */
+  --color-accent: #1b46d8; /* cobalt: confirmed pins, Keep pills, eyebrows, icons, rules */
+  --color-ink: #111527; /* titles, names, dark buttons, anchor pin, toasts */
+  --color-page: #f2f1ee; /* app background, sheet background, pin halos */
+  --color-map-ground: #e2e4ea; /* map placeholder fill */
+  --color-attention: #f6b21b; /* saffron: badges for items needing a person */
+  --color-attention-text: #b07c05; /* warning icon/label on saffron tints */
+  --color-attention-tint: rgba(246, 178, 27, 0.14); /* row bg for unlocated items */
+  --color-rule: rgba(27, 70, 216, 0.22); /* hairlines between rows */
+  --color-suggested-stroke: rgba(27, 70, 216, 0.5); /* hollow pin border */
+  --color-muted-text: rgba(17, 21, 39, 0.5); /* standfirst, notes */
+  --color-meta-text: rgba(0, 0, 0, 0.35); /* distances, small labels */
+
+  /* Typography */
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans:
+    'Helvetica Neue', Helvetica, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Spacing */
+  --space-gutter-mobile: 24px;
+  --space-gutter-desktop: 26px;
+  --space-row: 12px;
+  --space-action-gap: 8px;
+  --space-block: 22px;
+
+  /* Radius */
+  --radius-plate: 2px;
+  --radius-pill: 999px;
+  --radius-sheet: 18px;
+
+  /* Shadow */
+  --shadow-sheet: 0 -12px 34px rgba(0, 0, 0, 0.13);
+
+  /* Breakpoint (reference only — used in media queries directly) */
+  --breakpoint-desktop: 900px;
+}
