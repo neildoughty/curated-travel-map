@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// Access model: no accounts (per docs/spec.md non-goals). A trip's document
+// ID *is* the share token — a long random ID. Knowing it is the only
+// credential needed, same trust model as a Google Doc link.
+//
+// - Nobody can list/query the top-level trips collection (no enumerating
+//   other people's trips).
+// - Anyone who has a trip's ID can read/create/update/delete that trip and
+//   its places — matches the spec's "either person can add, keep, drop"
+//   requirement, with no per-person permissions (explicit non-goal).
+// - Listing places WITHIN a known trip is allowed — the UI needs that to
+//   render the map/list.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /trips/{tripId} {
+      allow get, create, update, delete: if true;
+      allow list: if false;
+
+      match /places/{placeId} {
+        allow get, list, create, update, delete: if true;
+      }
+    }
+  }
+}
