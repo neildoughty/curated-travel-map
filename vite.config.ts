@@ -4,6 +4,17 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // MapLibre GL JS loads its own worker via `new Worker(new URL(...))`;
+  // Vite's dependency pre-bundler doesn't resolve that worker entry
+  // correctly when maplibre-gl goes through the normal optimizer (fails
+  // with "file does not exist ... maplibre-gl-worker.mjs"), so it's
+  // excluded here and left to load as-is instead.
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
+  worker: {
+    format: 'es',
+  },
   plugins: [
     react(),
     VitePWA({
