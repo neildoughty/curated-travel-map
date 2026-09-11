@@ -110,3 +110,71 @@
   color: var(--color-attention-text);
   margin: 8px 24px 0;
 }
+
+/* Bottom sheet — mobile: slides up from the bottom edge; desktop: a
+   centred modal (>=900px, matching the tokens' breakpoint reference).
+   Shared by TripView's first-open intro and ImportSheet. */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 21, 39, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 10;
+}
+
+.sheet-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--color-page);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  box-shadow: var(--shadow-sheet);
+  padding: 28px 24px 32px;
+}
+
+.sheet-card__title {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  color: var(--color-ink);
+  margin: 6px 0 0;
+}
+
+.sheet-card__body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-ink);
+  margin: 14px 0 0;
+}
+
+@media (min-width: 900px) {
+  .sheet-overlay {
+    align-items: center;
+  }
+
+  .sheet-card {
+    border-radius: var(--radius-sheet);
+  }
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--color-ink);
+  color: var(--color-page);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sheet);
+  z-index: 20;
+  max-width: calc(100% - 48px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

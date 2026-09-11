@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { subscribeToTrip, addMemberIfNew } from '../lib/trips'
+import { subscribePlaces } from '../lib/places'
 import {
   getDisplayName,
   setDisplayName,
@@ -8,8 +9,9 @@ import {
   setLastTrip,
 } from '../lib/session'
 import { navigate } from '../lib/router'
-import type { Trip } from '../types/trip'
+import type { Trip, Place } from '../types/trip'
 import MapPlate from '../components/MapPlate'
+import ImportSheet from '../components/ImportSheet'
 import './TripView.css'
 
 type Status =
@@ -24,9 +26,12 @@ interface Props {
 
 function TripView({ tripId }: Props) {
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
+  const [places, setPlaces] = useState<Place[]>([])
   const [showIntro, setShowIntro] = useState(false)
   const [introName, setIntroName] = useState(getDisplayName() ?? '')
   const [copied, setCopied] = useState(false)
+  const [showImport, setShowImport] = useState(false)
+  const [lastImport, setLastImport] = useState<{ added: number; needsFix: number } | null>(null)
 
   // Story 1.4 — realtime sync: fires on every Firestore update from here on.
   // TripView is keyed by tripId in App.tsx, so a token change is a fresh
@@ -44,6 +49,12 @@ function TripView({ tripId }: Props) {
       (reason) => setStatus(reason === 'not-found' ? { kind: 'not-found' } : { kind: 'error' }),
     )
     return unsubscribe
+  }, [tripId])
+
+  // Epic 3 — realtime place list, so the "N places, M need a location"
+  // summary below never goes stale after an import.
+  useEffect(() => {
+    return subscribePlaces(tripId, setPlaces)
   }, [tripId])
 
   function dismissIntro() {
@@ -66,6 +77,12 @@ function TripView({ tripId }: Props) {
       // link is still visible and selectable, so this just skips the
       // one-tap convenience rather than failing the flow.
     }
+  }
+
+  function handleImported(summary: { added: number; needsFix: number }) {
+    setShowImport(false)
+    setLastImport(summary)
+    setTimeout(() => setLastImport(null), 6000)
   }
 
   if (status.kind === 'loading') {
@@ -109,6 +126,7 @@ function TripView({ tripId }: Props) {
     day: 'numeric',
     month: 'short',
   })
+  const unlocatedCount = places.filter((p) => p.status === 'unlocated').length
 
   return (
     <div className="masthead">
@@ -119,26 +137,61 @@ function TripView({ tripId }: Props) {
       <MapPlate />
 
       <div className="note-block">
-        No places yet — pasting in recommendations and triaging them on the map is
-        next (Epics&nbsp;2&ndash;4). For now, here's the link to share:
+        {places.length === 0 ? (
+          <>No places yet — paste in a message, email, or list to get started.</>
+        ) : (
+          <>
+            {places.length} place{places.length === 1 ? '' : 's'} so far
+            {unlocatedCount > 0 && (
+              <>
+                , {unlocatedCount} need{unlocatedCount === 1 ? 's' : ''} a location
+              </>
+            )}
+            . Triage (keep/drop) and pins on the map are next (Epics&nbsp;2&amp;4).
+          </>
+        )}
+        <div className="field" style={{ margin: '14px 0 0' }}>
+          <button className="btn-secondary" onClick={() => setShowImport(true)}>
+            {places.length === 0 ? 'Paste in recommendations' : 'Add more places'}
+          </button>
+        </div>
+      </div>
+
+      <div className="note-block">
+        Share this link so anyone can add and confirm places too:
         <div className="share-row">
           <code className="share-row__link">{window.location.href}</code>
           <button className="btn-secondary" onClick={copyLink}>
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
-        Anyone with this link can add and confirm places — same trust model as a
-        shared document.
       </div>
 
+      {showImport && (
+        <ImportSheet
+          tripId={tripId}
+          addedBy={getDisplayName() ?? trip.members[0]}
+          onClose={() => setShowImport(false)}
+          onImported={handleImported}
+        />
+      )}
+
+      {lastImport && (
+        <div className="toast">
+          Added {lastImport.added} place{lastImport.added === 1 ? '' : 's'}
+          {lastImport.needsFix > 0 &&
+            ` — ${lastImport.needsFix} need${lastImport.needsFix === 1 ? 's' : ''} a location`}
+        </div>
+      )}
+
       {showIntro && (
-        <div className="intro-overlay" role="dialog" aria-modal="true">
-          <div className="intro-card">
+        <div className="sheet-overlay" role="dialog" aria-modal="true">
+          <div className="sheet-card">
             <p className="masthead__eyebrow">
               Shared by {trip.members[0]} · {createdDate}
             </p>
-            <h2 className="intro-card__title">{trip.name}</h2>
-            <p className="intro-card__body">
+            <h2 className="sheet-card__title">{trip.name}</h2>
+            <p className="sheet-card__body">
               Places start out <strong>suggested</strong> — faint, unconfirmed. Anyone
               with this link can promote them to <strong>confirmed</strong>, or drop
               them. Both of you see the same list, live.

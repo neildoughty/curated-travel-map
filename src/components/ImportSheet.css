@@ -1,0 +1,70 @@
+.import-textarea {
+  width: 100%;
+  min-height: 140px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--color-ink);
+  background: #fff;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-plate);
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+.import-textarea:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+}
+
+.sheet-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 24px 24px 0;
+}
+
+.candidate-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-rule);
+}
+
+.candidate-row {
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.candidate-row label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 2px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.candidate-row input[type='checkbox'] {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+
+.candidate-row__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.candidate-row__badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-attention-text);
+  background: var(--color-attention-tint);
+  border-radius: var(--radius-pill);
+  padding: 3px 9px;
+  white-space: nowrap;
+}
