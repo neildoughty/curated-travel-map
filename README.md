@@ -8,9 +8,11 @@ Build plan (epics/stories): [`docs/build-plan.md`](docs/build-plan.md)
 
 ## Status
 
-Epic 0 (Foundation) in progress: PWA shell scaffolded (Vite + React + TypeScript +
-`vite-plugin-pwa`), design tokens ported from the Claude Design handoff. No data layer,
-map, or product screens yet — see `docs/build-plan.md` for what's next.
+Epic 0 (Foundation) and Epic 1 (Shared trip & link access) are done: PWA shell,
+design tokens, a live Firestore data layer, and the first real screens — create a
+trip, open it via its share link, a first-open intro explaining suggested vs
+confirmed, and realtime sync between devices. No map or import flow yet — see
+`docs/build-plan.md` for what's next (Epic 2).
 
 ## Getting started
 
