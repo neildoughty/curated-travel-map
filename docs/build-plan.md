@@ -12,7 +12,7 @@ Local repo (`~/curated-travel-map` on the Mac Mini) is still ahead of GitHub —
 
 The temporary Firestore connectivity check (`FirestoreCheck` in `src/App.tsx`) has been removed now that Epic 1 replaced the placeholder screen with the real trip-home screen.
 
-**Next: Epic 2 — Map plate & pin states.** Blocked on one thing only Neil can do: `npm install maplibre-gl` needs to run from his own Terminal (this session's shell can't reach npm's registry — see gotcha (3) below). Once that's installed, Epic 2 code can be written and verified the same way Epic 1 was.
+**Epic 2 is underway.** `maplibre-gl` is installed (Neil ran it — 25 packages, 0 vulnerabilities). Story 2.1 (map plate component) is built and committed (`ede3966`): a MapLibre instance in a contained panel, mounted into `TripView` above the share-link block, using MapLibre's free demo tile style so it renders with no API key. `tsc -b --noEmit` passes clean; `npm run build`/`npm run lint` still need Neil to run, same as every story so far. **Next: Story 2.2 — pin rendering** (needs real place data, which doesn't exist until Epic 3/4 — may make sense to stub a place or two to build pin styling against, worth a conscious call rather than blocking on Epic 3).
 
 ---
 
