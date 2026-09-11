@@ -2,7 +2,7 @@
 
 **Epic 0 (Foundation) is fully done and verified live** — not just committed, actually confirmed working end-to-end in a real browser (write/read/delete against Firestore all OK, and the "no listing trips" security rule correctly blocked, per a temporary on-screen check at `npm run dev`). Real Firebase project (`curated-travel-map`) exists, Firestore database is live, security rules are published and match the link-as-credential access model from the spec.
 
-**Epic 1 (Shared trip & link access) is built and committed** (`d069b0a` on local `main`) — create a trip, open it via `/trip/:token`, a first-open intro sheet explaining suggested vs confirmed with attribution, and realtime sync via a Firestore `onSnapshot` listener. `tsc -b --noEmit` passes clean. `npm run build` and `npm run lint` (oxlint) could not be verified from this session — same class of issue as the environment gotchas below, just one level further removed: this session's own shell is itself a sandboxed Linux VM on your Mac, separate from your actual Terminal, and the `node_modules` in the repo currently carry native bindings installed for your Terminal (`darwin-arm64`), not this VM (`linux-arm64`). **Please run `npm run build` and `npm run lint` yourself** to confirm those pass, and do the manual two-device check for Story 1.4 (open the same trip link on two devices/tabs, confirm a change on one shows on the other without a refresh) — same pattern as verifying Epic 0's Firestore check needed a real browser, not a sandboxed one.
+**Epic 1 (Shared trip & link access) is done and verified** — create a trip, open it via `/trip/:token`, a first-open intro sheet explaining suggested vs confirmed with attribution, and realtime sync via a Firestore `onSnapshot` listener. `npm run build` and `npm run lint` both came back clean on Neil's own Terminal (0 warnings, 0 errors, after one lint fix — `TripView` is now keyed by `tripId` in `App.tsx` so a token change is a fresh mount rather than a `setState` call inside an effect). Neil also spot-checked the share-link flow himself and is satisfied it works; a full two-tab realtime-sync test is deferred to later, alongside other edge-case testing.
 
 No router library was added for this: `npm install react-router-dom` got a 403 from npm's registry from this session's shell, and two routes ("/" and "/trip/:token") didn't need a dependency anyway — `src/lib/router.tsx` is a small hand-rolled History API wrapper instead.
 
@@ -12,7 +12,7 @@ Local repo (`~/curated-travel-map` on the Mac Mini) is still ahead of GitHub —
 
 The temporary Firestore connectivity check (`FirestoreCheck` in `src/App.tsx`) has been removed now that Epic 1 replaced the placeholder screen with the real trip-home screen.
 
-**Next: Epic 2 — Map plate & pin states.**
+**Next: Epic 2 — Map plate & pin states.** Blocked on one thing only Neil can do: `npm install maplibre-gl` needs to run from his own Terminal (this session's shell can't reach npm's registry — see gotcha (3) below). Once that's installed, Epic 2 code can be written and verified the same way Epic 1 was.
 
 ---
 
