@@ -8,11 +8,21 @@ No router library was added for this: `npm install react-router-dom` got a 403 f
 
 Local repo (`~/curated-travel-map` on the Mac Mini) is still ahead of GitHub — now 7 commits on `main`, builds clean per `tsc`. GitHub (`neildoughty/curated-travel-map`) still only has the single manual "Add files via upload" commit from before — missing `.gitignore`/`.oxlintrc.json` and containing a stray zip. Still parked on Neil sorting GitHub push credentials (`gh auth login` or a token) on his actual Mac; once done, `git push -u origin main --force` from `~/curated-travel-map` brings GitHub fully current in one step. Not urgent — doesn't block continued local building.
 
-**Environment gotchas hit and resolved this session** (worth remembering if they recur): (1) `npm install`/`npm run build` run inside Claude's sandboxed shell installs Linux-platform native bindings that don't work on Neil's actual arm64 Mac (`rolldown` "Cannot find native binding" error) — fix was `rm -rf node_modules package-lock.json && npm install` run by Neil himself on his Mac. (2) Neil's `~/.npm` cache had root-owned files from a past `sudo npm` use, causing `EACCES` — fixed with `sudo chown -R 501:20 ~/.npm`. (3) The Firestore-connected Cowork session's shell is *also* a sandboxed Linux VM distinct from Neil's Terminal, with the same native-binding mismatch and no reachable npm registry — code edits (plain text/TS/CSS) work fine there since the mounted folder is shared, but anything touching `node_modules` (`npm install`, `npm run build`, `oxlint`) needs Neil's own Terminal to actually verify.
+**Environment gotchas hit and resolved this session** (worth remembering if they recur): (1) `npm install`/`npm run build` run inside Claude's sandboxed shell installs Linux-platform native bindings that don't work on Neil's actual arm64 Mac (`rolldown` "Cannot find native binding" error) — fix was `rm -rf node_modules package-lock.json && npm install` run by Neil himself on his Mac. (2) Neil's `~/.npm` cache had root-owned files from a past `sudo npm` use, causing `EACCES` — fixed with `sudo chown -R 501:20 ~/.npm`. (3) The Firestore-connected Cowork session's shell is *also* a sandboxed Linux VM distinct from Neil's Terminal, with the same native-binding mismatch and no reachable npm registry — code edits (plain text/TS/CSS) work fine there since the mounted folder is shared, but anything touching `node_modules` (`npm install`, `npm run build`, `oxlint`) needs Neil's own Terminal to actually verify. (4) `maplibre-gl` crashed `npm run dev` ("file does not exist ... maplibre-gl-worker.mjs ... in the optimize deps directory") — Vite's dependency pre-bundler doesn't resolve the worker entry MapLibre GL JS loads internally via `new Worker(new URL(...))`; fixed by excluding `maplibre-gl` from `optimizeDeps` and setting `worker.format: 'es'` in `vite.config.ts`, a known/documented MapLibre+Vite incompatibility, not specific to this project's setup.
 
 The temporary Firestore connectivity check (`FirestoreCheck` in `src/App.tsx`) has been removed now that Epic 1 replaced the placeholder screen with the real trip-home screen.
 
-**Epic 2 is underway.** `maplibre-gl` is installed (Neil ran it — 25 packages, 0 vulnerabilities). Story 2.1 (map plate component) is built and committed (`ede3966`): a MapLibre instance in a contained panel, mounted into `TripView` above the share-link block, using MapLibre's free demo tile style so it renders with no API key. `tsc -b --noEmit` passes clean; `npm run build`/`npm run lint` still need Neil to run, same as every story so far. **Next: Story 2.2 — pin rendering** (needs real place data, which doesn't exist until Epic 3/4 — may make sense to stub a place or two to build pin styling against, worth a conscious call rather than blocking on Epic 3).
+**Epic 2 Story 2.1** (map plate) is built and committed (`ede3966`, fixed for a Vite/maplibre-gl dev-server crash in `54d3b0b` — see gotcha (4) below). Neil confirmed the map renders locally.
+
+**Epic 3 (Bulk import) is built and committed** (`e3f2227`) — all five stories, on Neil's steer to build the real data pipeline before returning to Epic 2's pin rendering. One thing is a deliberate stand-in, not a finished story:
+
+- **Story 3.2 (extraction) is stubbed**, not the real thing. `src/lib/extract.ts` does naive line-splitting instead of calling the Claude API — it needs (a) an Anthropic API key, and (b) an architecture decision: this is a client-side PWA, so calling the Claude API directly from the browser would ship the API key in the public JS bundle (a real cost/abuse risk). The natural fix is a small Firebase Cloud Function that holds the key server-side and the client calls instead — but that needs the Firebase project moved onto its paid Blaze plan (Spark can't make outbound network calls from Functions). **Neil needs to decide/action this**: get an Anthropic API key, and confirm the Cloud Function approach (or propose an alternative) before Story 3.2 can be un-stubbed. Everything else in Epic 3 (paste sheet, geocoding, review screen, landing) is real and already works against this stub — swapping in the real extraction later shouldn't require touching anything else.
+- Stories 3.1/3.3/3.4/3.5 are fully real: paste sheet, Nominatim geocoding (sequenced 1 req/sec per their usage policy), tick-row review (unresolved candidates flagged but still included by default — never silently dropped, per spec), and a batched Firestore write on landing.
+- Added a realtime place-count subscription on `TripView` ("N places, M need a location") — technically ahead of Epic 6's real list UI, but cheap, and without it Epic 3 would visibly contradict its own "no places yet" copy the moment an import landed.
+
+`tsc -b --noEmit` passes clean. `npm run build`/`npm run lint` still need Neil to run, same as every story so far.
+
+**Next: back to Epic 2 — Story 2.2 (pin rendering)**, now that Epic 3 gives it real place data to render against. Story 3.2 (real extraction) stays stubbed until Neil actions the Anthropic key / Cloud Function decision above — not a blocker for anything else, since the rest of the pipeline already works end to end with the stub.
 
 ---
 
@@ -38,8 +48,8 @@ The goal of the sequence is a **usable walking skeleton fast** (you and your par
 
 1. **Epic 0 — Foundation** ✅ done and verified — see Status above.
 2. **Epic 1 — Shared trip & link access** ✅ built and committed, pending Neil's local build/lint/two-device check — see Status above.
-3. **Epic 2 — Map plate & pin states:** the core visual object everything else hangs off. *(next)*
-4. **Epic 3 — Bulk import:** the primary way places get in.
+3. **Epic 2 — Map plate & pin states:** the core visual object everything else hangs off. ✅ Story 2.1 done, Story 2.2 (pins) *(next)*
+4. **Epic 3 — Bulk import** ✅ built and committed (Story 3.2 stubbed — see Status above), built ahead of finishing Epic 2 on Neil's steer, so it exists as real data for pin rendering to work against.
 5. **Epic 4 — Triage:** the core loop (this + 2 + 3 is a genuinely useful v0.1).
 6. **Epic 5 — Quick add:** the lighter-weight top-up path.
 7. **Epic 6 — Trip home states & list:** empty / all-agreed / shared-first-open, grouping, counts.
@@ -91,8 +101,9 @@ Epics 0–4 are the P0 core. 5–8 round out P0/P1. 9–10 are the difference be
 
 **Goal:** the shared visual component every other epic renders into. Build this generically enough that "map plate" is reusable at both the trip-home size and the expanded/desktop size.
 
-- **Story 2.1 — Map plate component**
-  - MapLibre instance in a contained, non-full-bleed panel per the spec's dimensions/border/radius.
+- **Story 2.1 — Map plate component** ✅ done — `src/components/MapPlate.tsx`
+  - MapLibre instance in a contained, non-full-bleed panel. Exact dimensions/border/radius are a placeholder (220px height, token radius/border) pending the actual Claude Design wireframe bundle, which isn't in this repo — adjust once that's available.
+  - Free MapLibre demo tiles by default; `VITE_MAPTILER_KEY` (optional, `.env.example`) switches to real cartography.
   - Placeholder grid removed in favour of real tiles (the wireframe's grid was a design placeholder, not a feature).
 - **Story 2.2 — Pin rendering**
   - Confirmed / suggested / needs-location / day-anchor pin styles exactly per the Design Tokens table.
@@ -111,19 +122,20 @@ Epics 0–4 are the P0 core. 5–8 round out P0/P1. 9–10 are the difference be
 
 **Goal:** paste messy text, get suggested places out. This is the product's signature move.
 
-- **Story 3.1 — Paste sheet UI**
+- **Story 3.1 — Paste sheet UI** ✅ done — `src/components/ImportSheet.tsx`
   - Textarea entry point per screen `4a` step 2, "Cancel" / "Find places" actions.
-- **Story 3.2 — Extraction call**
-  - Send pasted text to the Claude API; prompt it to return structured candidates: name, note (preserving original phrasing), source fragment, a confidence signal.
-  - This is the spec's unresolved "extraction confidence threshold" — start with a simple threshold, plan to tune against real pasted examples from an actual trip.
-- **Story 3.3 — Geocode each candidate**
-  - Run each extracted name through Nominatim.
+- **Story 3.2 — Extraction call** ⚠️ STUBBED — `src/lib/extract.ts`
+  - Real story: send pasted text to the Claude API; prompt it to return structured candidates: name, note (preserving original phrasing), source fragment, a confidence signal.
+  - Currently: a naive line-splitter, no API call. Blocked on Neil getting an Anthropic API key and deciding on an architecture (client-side call ships the key publicly — a Firebase Cloud Function proxy is the recommended fix, needs the Blaze plan). See Status above.
+  - This is still the spec's unresolved "extraction confidence threshold" question once the real call exists — start with a simple threshold, plan to tune against real pasted examples from an actual trip.
+- **Story 3.3 — Geocode each candidate** ✅ done — `src/lib/geocode.ts`
+  - Run each extracted name through Nominatim, sequenced 1 request/second per their usage policy.
   - No confident match → mark as unlocated, not dropped.
-- **Story 3.4 — Review screen**
-  - Tick-row list per candidate (name + source fragment), unresolvable ones shown unticked with the "too vague to locate" treatment.
+- **Story 3.4 — Review screen** ✅ done — `src/components/ImportSheet.tsx`
+  - Tick-row list per candidate (name), unresolvable ones flagged "needs a location" but still ticked (included) by default — the spec is explicit that these are never silently dropped, so the default here is inclusion, not exclusion.
   - Live-updating "Add N places" count.
-- **Story 3.5 — Landing**
-  - Returns to trip home (not a success page), toast with count + "needs a location" callout and a "Fix" link into Epic 8.
+- **Story 3.5 — Landing** ✅ done — `src/lib/places.ts` (`importPlaces`)
+  - Returns to trip home (not a success page), toast with count. The "needs a location" callout is a persistent trip-home summary line rather than only appearing in the toast (see the realtime place-count note in Status above); the "Fix" link into Epic 8 doesn't exist yet since Epic 8 isn't built.
 
 ---
 
