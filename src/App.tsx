@@ -17,7 +17,7 @@ function App() {
   }, [isKnownRoute])
 
   if (tripMatch) {
-    return <TripView tripId={tripMatch[1]} />
+    return <TripView tripId={tripMatch[1]} key={tripMatch[1]} />
   }
 
   return <Home />

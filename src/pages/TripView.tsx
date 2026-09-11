@@ -27,10 +27,11 @@ function TripView({ tripId }: Props) {
   const [introName, setIntroName] = useState(getDisplayName() ?? '')
   const [copied, setCopied] = useState(false)
 
-  // Story 1.4 — realtime sync: re-subscribes whenever the token in the URL
-  // changes, and every subsequent Firestore update re-renders from here.
+  // Story 1.4 — realtime sync: fires on every Firestore update from here on.
+  // TripView is keyed by tripId in App.tsx, so a token change is a fresh
+  // mount (and a fresh 'loading' initial state) rather than a setState
+  // call inside this effect.
   useEffect(() => {
-    setStatus({ kind: 'loading' })
     const unsubscribe = subscribeToTrip(
       tripId,
       (trip) => {
