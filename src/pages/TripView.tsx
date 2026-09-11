@@ -9,6 +9,7 @@ import {
 } from '../lib/session'
 import { navigate } from '../lib/router'
 import type { Trip } from '../types/trip'
+import MapPlate from '../components/MapPlate'
 import './TripView.css'
 
 type Status =
@@ -114,6 +115,8 @@ function TripView({ tripId }: Props) {
       <p className="masthead__eyebrow">Curated · shared link</p>
       <h1 className="masthead__title">{trip.name}</h1>
       <p className="masthead__standfirst">Sharing with {trip.members.join(', ')}</p>
+
+      <MapPlate />
 
       <div className="note-block">
         No places yet — pasting in recommendations and triaging them on the map is
