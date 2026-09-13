@@ -134,7 +134,7 @@ function TripView({ tripId }: Props) {
       <h1 className="masthead__title">{trip.name}</h1>
       <p className="masthead__standfirst">Sharing with {trip.members.join(', ')}</p>
 
-      <MapPlate />
+      <MapPlate places={places} />
 
       <div className="note-block">
         {places.length === 0 ? (

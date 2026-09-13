@@ -6,3 +6,40 @@
   background: var(--color-map-ground);
   border: 1px solid var(--color-rule);
 }
+
+/*
+  Story 2.2 pin styles. Confirmed = solid cobalt (full colour, per
+  spec.md's suggested/confirmed model); suggested = hollow/faint, so it
+  reads as visually recessive next to a confirmed pin at a glance. Anchor
+  (Epic 7, not wired up yet) uses --color-ink per tokens.css's comment on
+  that variable. Dimmed pins (out of an anchor's radius) lose opacity but
+  are never removed — per docs/build-plan.md Story 2.2.
+*/
+.pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--color-page);
+  transition: opacity 0.15s ease;
+}
+
+.pin--confirmed {
+  background: var(--color-accent);
+  border: 1.5px solid var(--color-page);
+}
+
+.pin--suggested {
+  background: var(--color-page);
+  border: 1.5px solid var(--color-suggested-stroke);
+}
+
+.pin--anchor {
+  width: 18px;
+  height: 18px;
+  background: var(--color-ink);
+  border: 2px solid var(--color-page);
+}
+
+.pin--dimmed {
+  opacity: 0.35;
+}
