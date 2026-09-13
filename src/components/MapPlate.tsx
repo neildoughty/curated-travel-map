@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MapLibreMap, Marker, LngLatBounds } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { Place, DayAnchor } from '../types/trip'
-import { distanceMetres } from '../lib/geo'
+import { distanceMetres, metresPerPixel, niceScaleDistance, walkMinutes } from '../lib/geo'
 import './MapPlate.css'
 
 /*
@@ -19,13 +19,23 @@ import './MapPlate.css'
   cobalt disc for confirmed, hollow disc for suggested) to match against
   once that bundle is available.
 
+  Story 2.3 adds the scale bar: a "500 m · 6 min walk" style label that
+  recomputes on every pan/zoom, using the standard scale-bar "nice round
+  number" algorithm (geo.ts) and the spec's flat 80m/min walking estimate.
+
   dayAnchor is optional and nothing passes one yet — Epic 7 hasn't built
   the anchor-setting UI. It's threaded through now because Story 2.2's
   acceptance criteria (docs/build-plan.md) explicitly calls for dimming
   out-of-radius pins (opacity, never removal), so the plate supports it
   generically rather than that behaviour being bolted on later.
 
-  Scale bar (2.3) and tap-to-expand (2.5) build on top of this next.
+  The map itself lives in its own inner div (map-plate__map) rather than
+  the outer map-plate div directly, so MapLibre's own imperative DOM
+  inserts (canvas, its internal marker layer) never share a parent with
+  anything React re-renders — the scale bar overlay is a sibling, not a
+  child of the div MapLibre manages.
+
+  Tap-to-expand (2.5) builds on top of this next.
 */
 
 const DEMO_STYLE = 'https://demotiles.maplibre.org/style.json'
@@ -40,16 +50,28 @@ const DEFAULT_CENTER: [number, number] = [-0.1276, 51.5072]
 const DEFAULT_ZOOM = 11
 const FIT_BOUNDS_PADDING = 32
 const SINGLE_PIN_ZOOM = 14
+const SCALE_TARGET_PX = 80
 
 interface Props {
   places: Place[]
   dayAnchor?: DayAnchor | null
 }
 
+interface ScaleInfo {
+  metres: number
+  widthPx: number
+}
+
+function formatScaleLabel(metres: number): string {
+  const distance = metres >= 1000 ? `${metres / 1000} km` : `${metres} m`
+  return `${distance} · ${walkMinutes(metres)} min walk`
+}
+
 function MapPlate({ places, dayAnchor = null }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const markersRef = useRef<Marker[]>([])
+  const [scale, setScale] = useState<ScaleInfo | null>(null)
 
   // Mount the map once; never re-created on prop changes.
   useEffect(() => {
@@ -62,6 +84,17 @@ function MapPlate({ places, dayAnchor = null }: Props) {
       attributionControl: { compact: true },
     })
     mapRef.current = map
+
+    // Story 2.3 — recompute the scale label on every pan/zoom so it's
+    // always "consistent with actual zoom level" rather than a static value.
+    const updateScale = () => {
+      const mpp = metresPerPixel(map.getZoom(), map.getCenter().lat)
+      const metres = niceScaleDistance(mpp * SCALE_TARGET_PX)
+      setScale(metres > 0 ? { metres, widthPx: metres / mpp } : null)
+    }
+    updateScale()
+    map.on('move', updateScale)
+
     return () => {
       map.remove()
       mapRef.current = null
@@ -125,7 +158,17 @@ function MapPlate({ places, dayAnchor = null }: Props) {
     }
   }, [places, dayAnchor])
 
-  return <div className="map-plate" ref={containerRef} aria-label="Trip map" />
+  return (
+    <div className="map-plate">
+      <div className="map-plate__map" ref={containerRef} aria-label="Trip map" />
+      {scale && (
+        <div className="scale-bar" aria-hidden="true">
+          <span className="scale-bar__line" style={{ width: `${scale.widthPx}px` }} />
+          <span className="scale-bar__label">{formatScaleLabel(scale.metres)}</span>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default MapPlate

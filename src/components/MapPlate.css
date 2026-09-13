@@ -1,10 +1,16 @@
 .map-plate {
+  position: relative;
   margin: 24px 24px 0;
   height: 220px;
   border-radius: var(--radius-plate);
   overflow: hidden;
   background: var(--color-map-ground);
   border: 1px solid var(--color-rule);
+}
+
+.map-plate__map {
+  position: absolute;
+  inset: 0;
 }
 
 /*
@@ -42,4 +48,37 @@
 
 .pin--dimmed {
   opacity: 0.35;
+}
+
+/*
+  Story 2.3 — scale bar. Sits over the map's bottom-left corner; the line
+  width is recalculated in MapPlate.tsx on every pan/zoom so it always
+  matches the current scale, per docs/build-plan.md ("500 m · 6 min walk
+  style label, consistent with actual zoom level").
+*/
+.scale-bar {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--color-meta-text);
+}
+
+.scale-bar__line {
+  height: 5px;
+  border-left: 1.5px solid var(--color-ink);
+  border-right: 1.5px solid var(--color-ink);
+  border-bottom: 1.5px solid var(--color-ink);
+}
+
+.scale-bar__label {
+  white-space: nowrap;
+  text-shadow:
+    0 0 3px var(--color-page),
+    0 0 3px var(--color-page);
 }
