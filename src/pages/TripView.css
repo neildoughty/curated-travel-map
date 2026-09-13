@@ -16,3 +16,27 @@
   border-radius: var(--radius-plate);
   font-size: 12px;
 }
+
+/*
+  Epic 4 — the floating undo toast for a keep/drop that had nothing left
+  to chain to (PinSheet shows its own inline undo banner instead while a
+  sheet is still open, so this and that never fight for the same space).
+*/
+.toast--action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.toast__undo {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-page);
+  text-decoration: underline;
+  cursor: pointer;
+}

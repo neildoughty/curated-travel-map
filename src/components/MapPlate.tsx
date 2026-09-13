@@ -29,6 +29,11 @@ import './MapPlate.css'
   out-of-radius pins (opacity, never removal), so the plate supports it
   generically rather than that behaviour being bolted on later.
 
+  Epic 4 (Triage) wires onSuggestedTap: tapping a hollow (suggested) pin
+  opens TripView's pin sheet (Story 4.1). Confirmed pins aren't tappable
+  yet — that's the spec's separate "place detail/edit" screen, not part
+  of this epic.
+
   The map itself lives in its own inner div (map-plate__map) rather than
   the outer map-plate div directly, so MapLibre's own imperative DOM
   inserts (canvas, its internal marker layer) never share a parent with
@@ -55,6 +60,7 @@ const SCALE_TARGET_PX = 80
 interface Props {
   places: Place[]
   dayAnchor?: DayAnchor | null
+  onSuggestedTap?: (place: Place) => void
 }
 
 interface ScaleInfo {
@@ -67,7 +73,7 @@ function formatScaleLabel(metres: number): string {
   return `${distance} · ${walkMinutes(metres)} min walk`
 }
 
-function MapPlate({ places, dayAnchor = null }: Props) {
+function MapPlate({ places, dayAnchor = null, onSuggestedTap }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
   const markersRef = useRef<Marker[]>([])
@@ -123,6 +129,13 @@ function MapPlate({ places, dayAnchor = null }: Props) {
       ) {
         el.classList.add('pin--dimmed')
       }
+      if (place.status === 'suggested' && onSuggestedTap) {
+        el.style.cursor = 'pointer'
+        el.addEventListener('click', (event) => {
+          event.stopPropagation()
+          onSuggestedTap(place)
+        })
+      }
       const marker = new Marker({ element: el }).setLngLat([
         place.coordinates.lng,
         place.coordinates.lat,
@@ -156,7 +169,7 @@ function MapPlate({ places, dayAnchor = null }: Props) {
       )
       map.fitBounds(bounds, { padding: FIT_BOUNDS_PADDING, maxZoom: 15, duration: 0 })
     }
-  }, [places, dayAnchor])
+  }, [places, dayAnchor, onSuggestedTap])
 
   return (
     <div className="map-plate">
