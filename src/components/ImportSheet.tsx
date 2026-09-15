@@ -29,11 +29,21 @@ interface Props {
 function ImportSheet({ tripId, addedBy, onClose, onImported }: Props) {
   const [step, setStep] = useState<Step>({ kind: 'paste' })
   const [text, setText] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   async function findPlaces() {
     if (!text.trim()) return
+    setError(null)
     setStep({ kind: 'working' })
-    const extracted = extractPlaces(text)
+    let extracted
+    try {
+      extracted = await extractPlaces(text)
+    } catch (err) {
+      console.error('findPlaces: extraction failed', err)
+      setError("Couldn't extract places from that — check your connection and try again.")
+      setStep({ kind: 'paste' })
+      return
+    }
     if (extracted.length === 0) {
       // Story 9.2 (import-found-nothing) owns the full treatment of this;
       // for now, back out to the paste step with the text intact rather
@@ -87,6 +97,7 @@ function ImportSheet({ tripId, addedBy, onClose, onImported }: Props) {
                 autoFocus
               />
             </div>
+            {error && <p className="error-text">{error}</p>}
             <div className="sheet-actions">
               <button className="btn-secondary" onClick={onClose}>
                 Cancel

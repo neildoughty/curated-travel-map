@@ -1,37 +1,32 @@
 /*
-  Text extraction — Epic 3, Story 3.2.
+  Story 3.2 — text extraction. Calls the extractPlaces Cloud Function
+  (functions/src/index.ts), which holds the Anthropic key server-side and
+  does the actual Claude call. This file is just the thin client wrapper.
 
-  STUB, pending an Anthropic API key. The real story sends pasted text to
-  the Claude API and gets back structured candidates (name, note, source
-  fragment, confidence) — see docs/build-plan.md's technical decisions.
-  Two things are needed before that can be wired in: an Anthropic API key,
-  and a decision on where it lives — this is a client-side PWA, so a
-  direct client call would ship the key in the JS bundle (a real cost/
-  abuse risk); a small Firebase Cloud Function proxy is the natural fix,
-  but needs the Firebase project on its paid Blaze plan (Spark can't make
-  outbound network calls).
-
-  Until that's sorted, this is a naive line-splitter: each non-empty line
-  of pasted text becomes one candidate, name and source fragment both the
-  full line, no real understanding of the text. It exists so the rest of
-  the pipeline (geocode, review, land in Firestore) can be built and
-  tested now. Swap this function's body out for the real API call later —
-  nothing else in Epic 3 needs to change when that happens.
+  Previously a naive line-splitter stub (one candidate per non-empty line);
+  replaced now that the real function is written and deployable — see
+  docs/build-plan.md, Epic 3 Story 3.2.
 */
+import { httpsCallable } from 'firebase/functions'
+import { functions } from './firebase'
+
 export interface ExtractedCandidate {
   name: string
   note: string | null
   sourceFragment: string
+  confidence: 'high' | 'low'
 }
 
-export function extractPlaces(text: string): ExtractedCandidate[] {
-  return text
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .map((line) => ({
-      name: line,
-      note: null,
-      sourceFragment: line,
-    }))
+interface ExtractPlacesResponse {
+  candidates: ExtractedCandidate[]
+}
+
+const callExtractPlaces = httpsCallable<{ text: string }, ExtractPlacesResponse>(
+  functions,
+  'extractPlaces',
+)
+
+export async function extractPlaces(text: string): Promise<ExtractedCandidate[]> {
+  const result = await callExtractPlaces({ text })
+  return result.data.candidates
 }
